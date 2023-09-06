@@ -1,6 +1,7 @@
 <script setup>
 import { reactive } from "vue";
 import { Inertia } from "@inertiajs/inertia";
+import BreezeValidationErrors from '@/Components/ValidationErrors.vue'
 
 // バリデーションでエラーがあった場合はerrorsの中にオブジェクトとして代入される
 defineProps({
@@ -19,6 +20,8 @@ const submitFunction = () => {
 </script>
 
 <template>
+    <!-- 自作したバリデーションコンポーネントにdefinePropsで指定したerrorを渡す -->
+    <BreezeValidationErrors :errors="errors"/>
     <!-- @submit.preventとすると、送信ボタンを押下した際にページの読み込みが行われなくなる。 -->
     <!-- また""の中に送信ボタンを押下した際のイベントを指定することが出来る。 -->
     <form @submit.prevent="submitFunction">

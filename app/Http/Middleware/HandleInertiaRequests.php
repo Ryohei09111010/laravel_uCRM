@@ -41,7 +41,8 @@ class HandleInertiaRequests extends Middleware
             },
             // 連想配列でコントローラに指定したキーを指定してセッションから取り出す。
             'flash' => [
-                'message' => fn() => $request->session()->get('message')
+                'message' => fn() => $request->session()->get('message'),
+                'status' => fn() => $request->session()->get('status')
             ]
         ]);
     }

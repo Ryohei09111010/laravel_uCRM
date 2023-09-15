@@ -5,3 +5,12 @@ const nl2br = (str) => {
 }
 // exportを指定すると外でこの関数を使用できるようになる
 export { nl2br }
+
+const getToday = () => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = ("0"+(today.getMonth()+1)).slice(-2);
+    const dd = ("0"+today.getDate()).slice(-2);
+    return yyyy + '-' + mm + '-' + dd;
+}
+export { getToday }

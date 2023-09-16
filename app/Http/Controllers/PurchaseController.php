@@ -8,6 +8,7 @@ use App\Http\Requests\UpdatePurchaseRequest;
 use Inertia\Inertia;
 use App\Models\Customer;
 use App\Models\Item;
+use App\Models\Order;
 use Illuminate\Support\Facades\DB;
 
 class PurchaseController extends Controller
@@ -19,7 +20,17 @@ class PurchaseController extends Controller
      */
     public function index()
     {
-        //
+        // dd(Order::paginate(50));
+
+        // 購買履歴を取得
+        $orders = Order::orderBy('created_at', 'desc')->groupBy('id')
+        ->selectRaw('id, customer_name,
+        sum(subtotal) as total, status, created_at')
+        ->paginate(50);
+        // dd($orders);
+        return Inertia::render('Purchases/Index', [
+            'orders' => $orders
+        ]);
     }
 
     /**
@@ -73,7 +84,21 @@ class PurchaseController extends Controller
      */
     public function show(Purchase $purchase)
     {
-        //
+
+        // 小計
+        $items = Order::where('id', $purchase->id)->get();
+
+        // 合計
+        $order = Order::groupBy('id')
+        ->where('id', $purchase->id)
+        ->selectRaw('id, customer_name, sum(subtotal) as total, status, created_at, updated_at')
+        ->get();
+        // dd($items, $order);
+
+        return Inertia::render('Purchases/Show', [
+            'order' => $order,
+            'items' => $items,
+        ]);
     }
 
     /**
@@ -84,7 +109,41 @@ class PurchaseController extends Controller
      */
     public function edit(Purchase $purchase)
     {
-        //
+        // 編集する購買履歴をIDで検索する
+        $purchase = Purchase::find($purchase->id);
+
+        // Itemの情報を取得する
+        $allItems = Item::select('id', 'name', 'price')
+        ->get();
+        $items = [];
+
+        // 購入した商品の個数を取得する為の処理
+        foreach($allItems as $allItem) {
+            $quantity = 0;
+            foreach($purchase->items as $item) {
+                if($allItem->id == $item->id) {
+                    $quantity = $item->pivot->quantity;
+                }
+            }
+            array_push($items, [
+                'id' => $allItem->id,
+                'name' => $allItem->name,
+                'price' => $allItem->price,
+                'quantity' => $quantity,
+            ]);
+        }
+
+        // 顧客情報を取得
+        $order = Order::groupBy('id')
+        ->where('id', $purchase->id)
+        ->selectRaw('id, customer_name, customer_id, status, created_at, updated_at')
+        ->get();
+
+        return Inertia::render('Purchases/Edit', [
+            'order' => $order,
+            'items' => $items,
+        ]);
+
     }
 
     /**
@@ -96,7 +155,25 @@ class PurchaseController extends Controller
      */
     public function update(UpdatePurchaseRequest $request, Purchase $purchase)
     {
-        //
+
+        DB::beginTransaction();
+        try {
+            $purchase->status = $request->status;
+            $purchase->save();
+
+            $items = [];
+            foreach($request->items as $item) {
+                $items = $items + [
+                    // item_id => [ 中間テーブルの列名 => 値 ]
+                    $item['id'] => [ 'quantity' => $item['quantity']]
+                ];
+            }
+            $purchase->items()->sync($items);
+            DB::commit();
+            return to_route('dashboard');
+        } catch(\Exception $e){
+            DB::rollback();
+        }
     }
 
     /**

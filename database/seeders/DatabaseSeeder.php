@@ -29,7 +29,7 @@ class DatabaseSeeder extends Seeder
             \App\Models\Customer::factory(1000)->create();
 
             $items = \App\Models\Item::all();
-            Purchase::factory(100)->create()
+            Purchase::factory(10000)->create()
             // eachを付けるとPurchaseの100件のデータを1件ずつ処理するようになる
             ->each(function(Purchase $purchase) use ($items){
             $purchase->items()->attach(

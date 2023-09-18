@@ -8,13 +8,20 @@ use App\Http\Controllers\InertiaTestController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\AnalysisController;
 
+
+Route::get('analysis', [AnalysisController::class, 'index'])->name('analysis');
+
+// 商品管理
 Route::resource('items', ItemController::class)
 ->middleware(['auth', 'verified']);
 
+// 顧客情報
 Route::resource('customers', CustomerController::class)
 ->middleware(['auth', 'verified']);
 
+// 商品と顧客の管理
 Route::resource('purchases', PurchaseController::class)
 ->middleware(['auth', 'verified']);
 

@@ -10,7 +10,6 @@ const props = defineProps({
 
 const labels = computed(() => props.data.labels)
 const totals = computed(() => props.data.totals)
-
 // リアクティブな変数に代入する
 const barData = reactive({
     labels: labels,

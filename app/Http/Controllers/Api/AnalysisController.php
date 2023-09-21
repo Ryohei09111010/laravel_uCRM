@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\Order;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use App\Services\AnalysisService;
+use App\Services\DecileService;
 
 class AnalysisController extends Controller
 {
@@ -14,18 +16,38 @@ class AnalysisController extends Controller
     {
 
         $subQuery = Order::betweenDate($request->startDate, $request->endDate);
-        if($request->type === 'perDay') {
-            $subQuery->where('status', true)->groupBy('id')->selectRaw('SUM(subtotal) AS
-            totalPerPurchase, DATE_FORMAT(created_at, "%Y%m%d") AS date')->groupBy('date');
+        // if($request->type === 'perDay') {
+        //     // 配列を受け取り変数に格納するため list() を使う
+        //     list($data, $labels, $totals) = AnalysisService::perDay($subQuery);
+        // }
 
-            $data = DB::table($subQuery)
-            ->groupBy('date')
-            ->selectRaw('date, sum(totalPerPurchase) as total')
-            ->get();
+        // if($request->type === 'perDay') {
+        //     // 配列を受け取り変数に格納するため list() を使う
+        //     list($data, $labels, $totals) = AnalysisService::perDay($subQuery);
+        // }
 
-            // キーを指定して一致するものを引っ張ってくる
-            $labels = $data->pluck('date');
-            $totals = $data->pluck('total');
+        // if($request->type === 'perDay') {
+        //     // 配列を受け取り変数に格納するため list() を使う
+        //     list($data, $labels, $totals) = AnalysisService::perDay($subQuery);
+        // }
+
+        switch ($request->type){
+            // 日別
+            case 'perDay':
+                list($data, $labels, $totals) = AnalysisService::perDay($subQuery);
+                break;
+            // 月別
+            case 'perMonth':
+                list($data, $labels, $totals) = AnalysisService::perMonth($subQuery);
+                break;
+            // 年別
+            case 'perYear':
+                list($data, $labels, $totals) = AnalysisService::perYear($subQuery);
+                break;
+            case 'decile':
+                list($data, $labels, $totals) = DecileService::decile($subQuery);
+                break;
+
         }
 
         // Ajax通信なのでJsonで返却する必要がある

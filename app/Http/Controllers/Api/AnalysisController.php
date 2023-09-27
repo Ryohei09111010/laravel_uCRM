@@ -9,6 +9,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use App\Services\AnalysisService;
 use App\Services\DecileService;
+use App\Services\RFMService;
 
 class AnalysisController extends Controller
 {
@@ -17,41 +18,50 @@ class AnalysisController extends Controller
 
         $subQuery = Order::betweenDate($request->startDate, $request->endDate);
         // if($request->type === 'perDay') {
-        //     // é…åˆ—ã‚’å—ã‘å–ã‚Šå¤‰æ•°ã«æ ¼ç´ã™ã‚‹ãŸã‚ list() ã‚’ä½¿ã†
+        //     // ÇÛÎó¤ò¼õ¤±¼è¤êÊÑ¿ô¤Ë³ÊÇ¼¤¹¤ë¤¿¤á list() ¤ò»È¤¦
         //     list($data, $labels, $totals) = AnalysisService::perDay($subQuery);
         // }
 
         // if($request->type === 'perDay') {
-        //     // é…åˆ—ã‚’å—ã‘å–ã‚Šå¤‰æ•°ã«æ ¼ç´ã™ã‚‹ãŸã‚ list() ã‚’ä½¿ã†
+        //     // ÇÛÎó¤ò¼õ¤±¼è¤êÊÑ¿ô¤Ë³ÊÇ¼¤¹¤ë¤¿¤á list() ¤ò»È¤¦
         //     list($data, $labels, $totals) = AnalysisService::perDay($subQuery);
         // }
 
         // if($request->type === 'perDay') {
-        //     // é…åˆ—ã‚’å—ã‘å–ã‚Šå¤‰æ•°ã«æ ¼ç´ã™ã‚‹ãŸã‚ list() ã‚’ä½¿ã†
+        //     // ÇÛÎó¤ò¼õ¤±¼è¤êÊÑ¿ô¤Ë³ÊÇ¼¤¹¤ë¤¿¤á list() ¤ò»È¤¦
         //     list($data, $labels, $totals) = AnalysisService::perDay($subQuery);
         // }
 
         switch ($request->type){
-            // æ—¥åˆ¥
+            // ÆüÊÌ
             case 'perDay':
                 list($data, $labels, $totals) = AnalysisService::perDay($subQuery);
                 break;
-            // æœˆåˆ¥
+            // ·îÊÌ
             case 'perMonth':
                 list($data, $labels, $totals) = AnalysisService::perMonth($subQuery);
                 break;
-            // å¹´åˆ¥
+            // Ç¯ÊÌ
             case 'perYear':
                 list($data, $labels, $totals) = AnalysisService::perYear($subQuery);
                 break;
             case 'decile':
                 list($data, $labels, $totals) = DecileService::decile($subQuery);
                 break;
+            case 'rfm':
+                list($data, $totals, $eachCount) = RFMService::rfm($subQuery, $request->rfmPrms);
+                // AjaxÄÌ¿®¤Ê¤Î¤ÇJson¤ÇÊÖµÑ¤¹¤ëÉ¬Í×¤¬¤¢¤ë
+                // json¤ÇÊÖµÑ¤¹¤ëºÝ¤ÏInertia¤ò»ÈÍÑ¤Ç¤­¤Ê¤¤¤Î¤Çresponse¤ò»ÈÍÑ¤¹¤ë
+                return response()->json([
+                    'data' => $data,
+                    'type' => $request->type,
+                    'eachCount' => $eachCount,
+                    'totals' => $totals
+                ], Response::HTTP_OK);
+                break;
 
         }
 
-        // Ajaxé€šä¿¡ãªã®ã§Jsonã§è¿”å´ã™ã‚‹å¿…è¦ãŒã‚ã‚‹
-        // jsonã§è¿”å´ã™ã‚‹éš›ã¯Inertiaã‚’ä½¿ç”¨ã§ããªã„ã®ã§responseã‚’ä½¿ç”¨ã™ã‚‹
         return response()->json([
             'data' => $data,
             'type' => $request->type,
